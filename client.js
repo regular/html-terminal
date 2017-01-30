@@ -1,6 +1,8 @@
 var shoe = require('shoe');
 var hterm = require('hterm-umdjs').hterm; 
 var lib = require('hterm-umdjs').lib; 
+var solarized = require('./solarized');
+
 hterm.defaultStorage = new lib.Storage.Local();
 var t = new hterm.Terminal();
 
@@ -31,8 +33,13 @@ t.onTerminalReady = function() {
     stream.on('data', function (msg) {
         t.io.print(msg);
     });
-    t.prefs_.set('cursor-color', 'rgba(255, 255, 255, 0.8)')
-    t.prefs_.set('font-size', 40)
+
+    // See https://chromium.googlesource.com/chromiumos/platform/assets/+/95f6a2c7a984b1c09b7d66c24794ce2057144e86/chromeapps/hterm/doc/faq.txt
+    t.prefs_.set('cursor-color', 'rgba(255, 255, 255, 0.3)');
+    t.prefs_.set('font-size', 35);
+    t.prefs_.set('font-family', 'Monaco for Powerline');
+    t.prefs_.set('cursor-blink', true);
+    solarized.dark(t);
 };
 t.decorate(document.querySelector('#terminal'));
 t.installKeyboard();
