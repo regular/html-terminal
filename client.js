@@ -1,7 +1,9 @@
 var shoe = require('shoe');
- 
+var hterm = require('hterm-umdjs').hterm; 
+var lib = require('hterm-umdjs').lib; 
 hterm.defaultStorage = new lib.Storage.Local();
 var t = new hterm.Terminal();
+
 t.onTerminalReady = function() {
     console.log('READY');
 
@@ -30,7 +32,7 @@ t.onTerminalReady = function() {
         t.io.print(msg);
     });
     t.prefs_.set('cursor-color', 'rgba(255, 255, 255, 0.8)')
-    t.prefs_.set('font-size', 18)
+    t.prefs_.set('font-size', 40)
 };
 t.decorate(document.querySelector('#terminal'));
 t.installKeyboard();
