@@ -14,6 +14,8 @@ t.onTerminalReady = function() {
         console.log(str);
         stream.write(str);
     };
+    console.log("io",io);
+    console.log("term",t);
 
     io.sendString = function(str) {
         console.log(str);
@@ -27,7 +29,9 @@ t.onTerminalReady = function() {
     stream.on('data', function (msg) {
         t.io.print(msg);
     });
-
+    t.prefs_.set('cursor-color', 'rgba(255, 255, 255, 0.8)')
+    t.prefs_.set('font-size', 18)
 };
 t.decorate(document.querySelector('#terminal'));
 t.installKeyboard();
+

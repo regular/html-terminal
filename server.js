@@ -4,9 +4,11 @@ var pty = require('node-pty');
 var shoe = require('shoe');
 var http = require('http');
  
-var shell = 'bash';
+var shell = '/usr/bin/login';
  
-var ecstatic = require('ecstatic')(__dirname);
+var ecstatic = require('ecstatic')(__dirname, {
+    cache: "no-cache"
+});
  
 var server = http.createServer(ecstatic);
 server.listen(9999);
@@ -15,8 +17,8 @@ var sock = shoe(function (stream) {
     console.log("something is happening");
     var ptyProcess = pty.spawn(shell, [], {
       name: 'xterm-color',
-      cols: 160,
-      rows: 50,
+      cols: 80,
+      rows: 25,
       cwd: process.env.HOME,
       env: process.env
     });
