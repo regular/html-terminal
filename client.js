@@ -27,18 +27,26 @@ t.onTerminalReady = function() {
         // terminal itself.
         // Most likely you'll do the same this as onVTKeystroke.
     };
-    t.io.print('Print a string without a newline');
-    t.io.println('Print a string and add CRLF');
+    //t.io.print('Print a string without a newline');
+    t.io.println('*** 65535 BASIC BYTES FREE ***');
 
     stream.on('data', function (msg) {
         t.io.print(msg);
     });
 
     // See https://chromium.googlesource.com/chromiumos/platform/assets/+/95f6a2c7a984b1c09b7d66c24794ce2057144e86/chromeapps/hterm/doc/faq.txt
-    t.prefs_.set('cursor-color', 'rgba(255, 255, 255, 0.3)');
+    t.prefs_.set('cursor-color', 'rgba(155, 255, 155, 0.5)');
     t.prefs_.set('font-size', 35);
-    t.prefs_.set('font-family', 'Monaco for Powerline');
+    //t.prefs_.set('font-family', 'Monaco for Powerline');
+    t.prefs_.set('font-family', 'Inconsolata');
     t.prefs_.set('cursor-blink', true);
+
+    t.prefs_.set('enable-bold', true);
+    t.term_.prefs_.set('enable-bold-as-bright', false);
+
+    t.prefs_.set('environment', {
+      "TERM": "xterm-256color"
+    });
     solarized.dark(t);
 };
 t.decorate(document.querySelector('#terminal'));
