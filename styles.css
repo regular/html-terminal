@@ -11,6 +11,25 @@
     height: 200px;
 }
 
+#mpc {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    color: yellow;
+}
+
+#mpc .btn {
+    cursor: pointer;
+    background-color: black;
+    opacity: 0.2;
+    padding: 4px 10px;
+}
+
+#meta .btn:hover {
+    opacity: 0.9;
+    background-color: blue;
+}
+
 body {
     background-color: green;
     width: 100vw;

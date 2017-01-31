@@ -9,12 +9,21 @@
   "author": "Jan Bölsche <jan@lagomorph.de> (http://regular.codes)",
   "license": "MIT",
   "devDependencies": {
-    "browserify": "^14.0.0"
+    "browserify": "^14.0.0",
+    "jshint": "^2.9.4"
   },
   "dependencies": {
     "ecstatic": "^2.1.0",
     "hterm-umdjs": "^1.1.4",
     "node-pty": "^0.6.2",
-    "shoe": "0.0.15"
+    "pull-file": "^1.0.0",
+    "pull-glob": "^1.0.6",
+    "pull-split": "^0.2.0",
+    "pull-stream": "^3.5.0",
+    "ramda": "^0.23.0",
+    "shoe": "0.0.15",
+    "split": "^1.0.0",
+    "systemd-daemon": "^1.1.0",
+    "tracer": "^0.8.7"
   }
 }
