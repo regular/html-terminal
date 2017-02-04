@@ -1,5 +1,4 @@
 *.swp
-web
-script.js
 node_modules
+build
 

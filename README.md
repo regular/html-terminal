@@ -15,13 +15,46 @@ This is part of [htmshell][6].
 
 ## Installation
 
+### Arch Linux
+
+#### Dependencies
+
+```
+pacman -S nodejs weston 
+```
+and from AUR: [webkit2gtk-unstable](https://aur.archlinux.org/packages/webkit2gtk-unstable/)
+
 ```
 npm i
-cp node-terminal-server.service /etc/systemd/system/
-# edit to adjust the paths in the .service file
+cp build/node-terminal-server.service /etc/systemd/system/
+cp build/html-terminal..service /etc/systemd/system/
 systemctl daemon-reload
-systemctl start node-terminal-server.service
-````
+systemctl start node-terminal-server
+```
+
+Make sure your `/etc/systemd/system/weston.service` looks somewhat like mine:
+
+```
+[Unit]
+Description=weston
+RequiresMountsFor=/run
+Requires=dbus.service systemd-udevd.service
+After=dbus.service systemd-udevd.service
+
+[Service]
+Type=notify
+NotifyAccess=all
+WatchdogSec=20s
+ExecStartPre=/bin/mkdir -p /var/run/root/1000
+ExecStartPre=/bin/chmod 0700 /var/run/root/1000
+ExecStart=/usr/bin/openvt -v -e /usr/bin/weston -- --modules=systemd-notify.so  --backend=drm-backend.so --log=/var/log/weston.log
+ExecStartPost=/usr/bin/bash -c "env > /var/run/root/1000/environment"
+Nice=-20
+Environment=XDG_RUNTIME_DIR=/var/run/root/1000
+
+[Install]
+WantedBy=multi-user.target
+```
 
 # Known Bugs
 
@@ -38,6 +71,5 @@ Invent custom [ANSI Escape Sequence][7] to support rendering of HTML snippets in
 [5]: https://en.wikipedia.org/wiki/Systemd
 [6]: https://github.com/regular/htmshell
 [7]: https://en.wikipedia.org/wiki/ANSI_escape_code
-
 
 

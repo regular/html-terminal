@@ -1,0 +1,7 @@
+[Unit]
+Description=Node Terminal Server
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/node INSTALLDIR/server.js
+

@@ -1,0 +1,15 @@
+[Unit]
+Description=HTML Terminal
+Requires=node-terminal-server.service weston.service
+After=node-terminal-server.service weston.service
+
+[Service]
+Type=simple
+ExecStart=INSTALLDIR/web
+Environment=GTK_THEME=Adwaita:dark
+Environment=GDK_BACKEND=wayland
+Environment=XDG_RUNTIME_DIR=/var/run/root/1000
+EnvironmentFile=/var/run/root/1000/environment
+
+[Install]
+WantedBy=multi-user.target

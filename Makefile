@@ -1,11 +1,24 @@
-all: script.js web
+pwd := $(shell pwd)
 
-script.js: client.js
-	node_modules/.bin/browserify client.js -o script.js
+all: build/bundle.js build/web servicefiles
+.PHONY : all
 
-web: web.c
-	gcc -o web `pkg-config --libs --cflags webkit2gtk-4.0` web.c
+build/bundle.js: client.js
+	mkdir -p build
+	node_modules/.bin/browserify client.js -o build/bundle.js
+
+build/web: web.c
+	mkdir -p build
+	gcc -o build/web `pkg-config --libs --cflags webkit2gtk-4.0` web.c
+
+servicefiles: build/node-terminal-server.service build/html-terminal.service
+.PHONY : servicefiles
+
+build/html-terminal.service: html-terminal.service
+	cat html-terminal.service | sed "s#INSTALLDIR#${pwd}#" > build/html-terminal.service
+
+build/node-terminal-server.service: node-terminal-server.service
+	cat node-terminal-server.service | sed "s#INSTALLDIR#${pwd}#" > build/node-terminal-server.service
 
 clean:
-	rm script.js
-	rm web
+	rm -f build/*
