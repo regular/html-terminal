@@ -27,7 +27,7 @@ and from AUR: [webkit2gtk-unstable](https://aur.archlinux.org/packages/webkit2gt
 ```
 npm i
 cp build/node-terminal-server.service /etc/systemd/system/
-cp build/html-terminal..service /etc/systemd/system/
+cp build/html-terminal.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl start node-terminal-server
 ```
