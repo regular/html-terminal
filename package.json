@@ -14,14 +14,17 @@
     "jshint": "^2.9.4"
   },
   "dependencies": {
+    "binary-stream-replace": "^1.0.2",
+    "buffer-equal": "^1.0.0",
     "ecstatic": "^2.1.0",
     "hterm-umdjs": "^1.1.4",
     "node-pty": "^0.6.2",
     "ramda": "^0.23.0",
+    "remote-spawn": "^1.0.0",
     "shoe": "0.0.15",
     "split": "^1.0.0",
     "systemd-daemon": "^1.1.0",
-    "tracer": "^0.8.7",
-    "remote-spawn": "^1.0.0"
+    "through2": "^2.0.3",
+    "tracer": "^0.8.7"
   }
 }
