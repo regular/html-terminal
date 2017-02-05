@@ -3,9 +3,7 @@ var shoe = require('shoe');
 var hterm = require('hterm-umdjs').hterm; 
 var lib = require('hterm-umdjs').lib; 
 var solarized = require('./solarized');
-const through = require('through');
-const bufferEquals = require('buffer-equal');
-const replace = require('binary-stream-replace');
+const apc = require('./apc');
 
 hterm.defaultStorage = new lib.Storage.Local();
 var t = new hterm.Terminal();
@@ -32,41 +30,9 @@ t.onTerminalReady = function() {
     //t.io.print('Print a string without a newline');
     t.io.println('*** 65535 BASIC BYTES FREE ***');
 
-    let beginMagic = Buffer.from('\x1b_HTMSHELL/1.0');
-    let endMagic = Buffer.from('\x1b\\');
-    
-    stream.pipe( 
-        through(function(chunk) {
-            // Turn string into Buffer
-            // TODO: Is it a problem that the wecsocket
-            // is not binary-safe?
-            this.queue(Buffer.from(chunk));
-        })
-    ).pipe(
-        replace(beginMagic, beginMagic)
-    ).pipe(
-        replace(endMagic, endMagic)
-    ).pipe(
-        (()=>{
-            let isPayload = false;
-            return through( function(chunk) {
-                //console.log('chunk', chunk);
-                let prolog = bufferEquals(chunk, beginMagic);
-                let epilog = bufferEquals(chunk, endMagic);
-                if (prolog && !isPayload) {
-                    isPayload = true;
-                }
-                if (!isPayload) {
-                    this.queue(chunk);
-                } else if (!prolog && !epilog) {
-                    console.log('magic payload >>', chunk.toString());
-                }
-                if (epilog) isPayload = false;
-            });
-        })()
-    ).on('data', function (msg) {
+    apc(stream).on('data', function (data) {
         //console.log('terminal.print,', msg);
-        t.io.print(msg);
+        t.io.print(data.toString());
     });
 
     // See https://chromium.googlesource.com/chromiumos/platform/assets/+/95f6a2c7a984b1c09b7d66c24794ce2057144e86/chromeapps/hterm/doc/faq.txt
