@@ -1,11 +1,12 @@
 {
   "name": "html-terminal",
   "version": "1.0.0",
-  "description": "",
-  "main": "hterm-concatenated.js",
+  "description": "Terminal emulator based on web technologies.",
+  "main": "server.js",
   "scripts": {
     "postinstall": "make",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "author": "Jan Bölsche <jan@lagomorph.de> (http://regular.codes)",
   "license": "MIT",
@@ -17,16 +18,32 @@
     "base64-stream": "^0.1.3",
     "binary-stream-replace": "^1.0.2",
     "bl": "^1.2.0",
+    "browserify-zlib-next": "ipfs/browserify-zlib-next",
     "buffer-equal": "^1.0.0",
     "ecstatic": "^2.1.0",
     "hterm-umdjs": "^1.1.4",
     "node-pty": "^0.6.2",
     "ramda": "^0.23.0",
-    "remote-spawn": "^1.0.0",
+    "remote-spawn": "regular/remote-spawn",
     "shoe": "0.0.15",
     "split": "^1.0.0",
     "systemd-daemon": "^1.1.0",
-    "through2": "^2.0.3",
+    "through": "^2.3.8",
     "tracer": "^0.8.7"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/regular/html-terminal.git"
+  },
+  "keywords": [
+    "htmshell",
+    "terminal",
+    "terminal-emulator",
+    "VT2017",
+    "multimedia-terminal"
+  ],
+  "bugs": {
+    "url": "https://github.com/regular/html-terminal/issues"
+  },
+  "homepage": "https://github.com/regular/html-terminal#readme"
 }

@@ -3,7 +3,11 @@ pwd := $(shell pwd)
 all: build/bundle.js build/web servicefiles
 .PHONY : all
 
-build/bundle.js: client.js
+# get rid of this when the PR is merged
+node_modules/browserify-zlib-next/lib/index.js:
+	cd node_modules/browserify-zlib-next && npm i && npm run build
+
+build/bundle.js: client.js node_modules/browserify-zlib-next/lib/index.js
 	mkdir -p build
 	node_modules/.bin/browserify client.js -o build/bundle.js
 

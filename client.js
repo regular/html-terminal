@@ -1,25 +1,32 @@
 //jshint esversion: 6, -W083
-var shoe = require('shoe');
-var hterm = require('hterm-umdjs').hterm; 
-var lib = require('hterm-umdjs').lib; 
-var solarized = require('./solarized');
-const apc = require('./apc');
 
+// npm modules
+const shoe = require('shoe');
+const hterm = require('hterm-umdjs').hterm; 
+const lib = require('hterm-umdjs').lib; 
+
+// local modules
+const setPreferences = require('./preferences');
+const solarized = require('./solarized');
+const filterAndProcessAPC = require('./apc');
+
+// TODO: Either set to a non-persistent storage or expose
+// via localstoragefs (to be created) and do not set prefs in code.
+// We can than mount localstorage to ~/.config/htmshell and set prefs
+// in a json file.
 hterm.defaultStorage = new lib.Storage.Local();
-var t = new hterm.Terminal();
+let t = new hterm.Terminal();
 
 t.onTerminalReady = function() {
-    console.log('READY');
+    console.log('terminal ready');
 
     // connect to websocket on the server
-    var stream = shoe('/pty');
-    var io = t.io.push();
+    let stream = shoe('/pty');
+    let io = t.io.push();
 
     io.onVTKeystroke = function(str) {
         stream.write(str);
     };
-    console.log("io",io);
-    console.log("term",t);
 
     io.sendString = function(str) {
         //console.log(str);
@@ -27,30 +34,16 @@ t.onTerminalReady = function() {
         // terminal itself.
         // Most likely you'll do the same this as onVTKeystroke.
     };
-    //t.io.print('Print a string without a newline');
     t.io.println('*** 65535 BASIC BYTES FREE ***');
 
-    apc(stream).on('data', function (data) {
-        //console.log('terminal.print,', msg);
+    filterAndProcessAPC(stream).on('data', function (data) {
         t.io.print(data.toString());
     });
 
-    // See https://chromium.googlesource.com/chromiumos/platform/assets/+/95f6a2c7a984b1c09b7d66c24794ce2057144e86/chromeapps/hterm/doc/faq.txt
-    t.prefs_.set('cursor-color', 'rgba(155, 255, 155, 0.5)');
-    t.prefs_.set('font-size', 35);
-    //t.prefs_.set('font-family', 'Monaco for Powerline');
-    t.prefs_.set('font-family', 'Inconsolata');
-    t.prefs_.set('cursor-blink', true);
-
-    t.prefs_.set('enable-bold', true);
-    t.prefs_.set('enable-bold-as-bright', false);
-
-    t.prefs_.set('environment', {
-      "TERM": "xterm-256color"
-    });
+    setPreferences(t.prefs_);
     solarized.dark(t);
-
 };
+
 t.decorate(document.querySelector('#terminal'));
 t.installKeyboard();
 
