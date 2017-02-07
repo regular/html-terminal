@@ -11,6 +11,8 @@ const ecstatic = require('ecstatic')(__dirname, {
     cache: "no-cache"
 });
 const split = require('split');
+
+const domfs = require('domfs/lib/server');
 const remoteSpawn = require('remote-spawn');
 
 const shell = '/usr/bin/login';
@@ -50,3 +52,6 @@ remoteSpawn(server, (err)=> {
         console.error(`Failed to initialze remote-spawn: ${err}`);
     }
 });
+
+domfs(server, process.env.DOMFS_MOUNTPOINT || './mnt');
+

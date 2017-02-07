@@ -3,5 +3,10 @@ Description=Node Terminal Server
 
 [Service]
 Type=notify
+ExecStartPre=/bin/mkdir -p /dom
+ExecStartPre=/bin/chmod 0770 /dom
+ExecStartPre=/bin/chgrp domfs /dom
 ExecStart=/usr/bin/node INSTALLDIR/server.js
+ExecStartPost=rm -rf /dom
+Environment=DOMFS_MOUNTPOINT=/dom
 

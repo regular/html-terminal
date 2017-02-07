@@ -5,6 +5,9 @@ const shoe = require('shoe');
 const hterm = require('hterm-umdjs').hterm; 
 const lib = require('hterm-umdjs').lib; 
 
+// htmshell modules (npm link'ed at dev time)
+const domfs = require('domfs/lib/client');
+
 // local modules
 const setPreferences = require('./preferences');
 const solarized = require('./solarized');
@@ -46,4 +49,4 @@ t.onTerminalReady = function() {
 
 t.decorate(document.querySelector('#terminal'));
 t.installKeyboard();
-
+domfs.run();
