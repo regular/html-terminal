@@ -10,6 +10,17 @@ const throughout = require('throughout');
 let beginMagic = Buffer.from('\x1b_HTMSHELL/1.0');
 let endMagic = Buffer.from('\n\x1b\\');
 
+function parseHeaderLines(headers) {
+    let [args, ...kvs] = headers;
+    args = args.split(' ');
+    let ret = {args};
+    for(let kv of kvs) {
+        [k,v] = kv.split(/\s*:\s*/);
+        ret[k] = v;
+    }
+    return ret;
+}
+
 function makeHeaderStream(cb) {
     let buffers = bl();
     let inHeaders = true;
@@ -57,11 +68,14 @@ function makeAPCStream(actions) {
         if (prolog && !isPayload) {
             isPayload = true;
 
-            headerStream = makeHeaderStream( (headers) => {
-                decoderStream = makeDecoderStream(headers);
+            headerStream = makeHeaderStream( (headerLines) => {
+                let header = parseHeaderLines(headerLines);
+                decoderStream = makeDecoderStream(header);
                 headerStream.pipe(decoderStream);
-                let action = getActionFromHeader(headers, actions);
-                if (action) action(decoderStream, headers);
+                let action = header.args[0];
+                if (action) {
+                    action( decoderStream, header);
+                }
             });
         }
         if (!isPayload) {
@@ -85,3 +99,4 @@ module.exports = function(actions = {}) {
 };
 
 module.exports.makeHeaderStream = makeHeaderStream;
+module.exports.parseHeaderLines = parseHeaderLines;

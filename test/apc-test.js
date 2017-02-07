@@ -7,6 +7,29 @@ const concat = require('concat-stream');
 const beginMagic = Buffer.from('\x1b_HTMSHELL/1.0');
 const endMagic = Buffer.from('\n\x1b\\');
 
+test('parseHeaderLines', (t)=> {
+    t.deepEqual(apc.parseHeaderLines([
+        'action'
+    ]), {args:['action']}, 'Action name only');
+
+    t.deepEqual(apc.parseHeaderLines([
+        'APPEND arg1'
+    ]), {args:['APPEND', 'arg1']}, 'Action with args only');
+
+    t.deepEqual(apc.parseHeaderLines([
+        'APPEND arg1 arg2',
+        'key1: value1',
+        'key2 :value2',
+        'key3 : value3'
+    ]), {
+        args:['APPEND', 'arg1', 'arg2'],
+        key1: 'value1',
+        key2: 'value2',
+        key3: 'value3'
+    }, 'Action with args only');
+    t.end();
+});
+
 test('makeHeaderStream (one line header)', (t)=>{
     t.plan(4);
 
@@ -73,13 +96,14 @@ test('Should call callback with payload stream', (t)=> {
     stream.append(endMagic);
     stream.append(' World');
 
-    t.plan(5);
+    t.plan(3);
 
     stream.pipe(apc({
         ACTION: (payloadStream, headers) => {
-            t.equal(headers.length, 2, 'Should be one header line');
-            t.equal(headers[0], 'ACTION', 'Should be correct header line');
-            t.equal(headers[1], 'foo: bar', 'Should be correct header line');
+            t.deepEqual(headers, {
+                args: ['ACTION'],
+                foo: 'bar'
+            }, 'Should have correctly parsed header');
             payloadStream.pipe(concat( (payload) => {
                 t.equal(payload.toString(), 'data', 'Should be correct payload');
             }));
