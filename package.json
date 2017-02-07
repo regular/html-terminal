@@ -5,14 +5,16 @@
   "main": "server.js",
   "scripts": {
     "postinstall": "make",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tape test/*.js",
     "start": "node server.js"
   },
   "author": "Jan Bölsche <jan@lagomorph.de> (http://regular.codes)",
   "license": "MIT",
   "devDependencies": {
     "browserify": "^14.0.0",
-    "jshint": "^2.9.4"
+    "concat-stream": "^1.6.0",
+    "jshint": "^2.9.4",
+    "tape": "^4.6.3"
   },
   "dependencies": {
     "base64-stream": "^0.1.3",

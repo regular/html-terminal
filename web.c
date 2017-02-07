@@ -2,6 +2,7 @@
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 
+
 #define FULLSCREEN
 //#define INSPECTOR
 
@@ -12,6 +13,8 @@ static gboolean closeWebViewCb(WebKitWebView* webView, GtkWidget* window);
 
 int main(int argc, char* argv[])
 {
+    WebKitWebView.setWebContentsDebuggingEnabled(true);
+
     // Initialize GTK+
     gtk_init(&argc, &argv);
 

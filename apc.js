@@ -9,7 +9,73 @@ const bl = require('bl');
 let beginMagic = Buffer.from('\x1b_HTMSHELL/1.0');
 let endMagic = Buffer.from('\n\x1b\\');
 
-module.exports = function(stream) {
+function makeHeaderStream(cb) {
+    let buffers = bl();
+    let inHeaders = true;
+    let separator1 = Buffer.from('\n\n'); //TODO: use max occurances =1
+    let separator2 = Buffer.from('\r\n\r\n');
+
+    let ret = replace(separator1, separator1);
+    ret.pipe(replace(separator2, separator2)).pipe( through(write) );
+
+    function write(chunk) {
+        console.log('header chunk', chunk);
+
+        if (inHeaders) {
+            if (bufferEquals(chunk, separator1) || bufferEquals(chunk, separator2)) {
+                console.log('found header separator');
+                let headers = buffers.toString().split(/[\n\r]+/g);
+                inHeaders = false;
+                return cb(headers);
+            } else {
+                buffers.append(chunk);
+            }
+        } else {
+            this.queue(chunk);
+        }
+    }
+    return ret;
+}
+
+function makeDecoderStream(headers) {
+    return through();
+}
+
+function getActionFromHeaders(headers, actions) {
+    return action[headers[0]];
+}
+
+function makeAPCStream(actions) {
+    let isPayload = false;
+    let headerStream, decoderStream;
+    return through( function(chunk) {
+        let prolog = bufferEquals(chunk, beginMagic);
+        let epilog = bufferEquals(chunk, endMagic);
+
+        if (prolog && !isPayload) {
+            isPayload = true;
+
+            headerStream = makeHeaderStream( (headers) => {
+                decoderStream = makeDecoderStream(headers);
+                headerStream.pipe(deocderStream);
+                let action = getActionFromHeader(headers, actions);
+                if (action) action(decoderStream, headers);
+            });
+        }
+        if (!isPayload) {
+            this.queue(chunk);
+        } else if (!prolog && !epilog) {
+            headerStream.write(chunk);
+        }
+        if (epilog) {
+            console.log('ending decodeStream');
+            isPayload = false;
+            headerStream.end();
+        }
+    });
+}
+
+module.exports = function(stream, actions) {
     return stream.pipe(through(function(chunk) {
         // Turn string into Buffer
         // TODO: Is it a problem that the wecsocket
@@ -25,65 +91,8 @@ module.exports = function(stream) {
     ).pipe(
         replace(endMagic, endMagic)
     ).pipe(
-        (()=>{
-            let isPayload = false;
-            let decodeStream;
-            let bufferList;
-            let inHeader;
-            return through( function(chunk) {
-                //console.log('chunk', chunk);
-                let prolog = bufferEquals(chunk, beginMagic);
-                let epilog = bufferEquals(chunk, endMagic);
-                if (prolog && !isPayload) {
-                    isPayload = true;
-                    inHeader = true;
-                    bufferList = new bl();
-                    let gunzip = zlib.createGunzip();
-
-                    gunzip.on('error', (err)=>{
-                        console.log('gunzip err', err); 
-                    });
-                    gunzip.on('data', (data)=>{
-                        //console.log('gunzip data', data); 
-                        bufferList.append(data);
-                    });
-                    gunzip.on('end', (data)=>{
-                        console.log('gunzip end'); 
-                        let html = bufferList.toString();
-                        console.log('html', html.length); 
-                        let el = document.createElement('div');
-                        el.innerHTML = html;
-                        el.style.height = '20%';
-                        el.style.width = '100%';
-                        document.body.appendChild(el);
-                    });
-
-                    decodeStream = replace(Buffer.from(';;'), Buffer.from(';;'));
-                    decodeStream
-                        .pipe(through(function(data) {
-                            //console.log(data);
-                            if (!inHeader) {
-                                this.queue(data); 
-                            }
-                            if (data.length==2 && data[0]==59 && data[1]==59) {
-                                console.log('FOUND EMPTY LINE');
-                                inHeader = false;
-                            }
-                        }))
-                        .pipe(base64.decode())
-                        .pipe(gunzip);
-                }
-                if (!isPayload) {
-                    this.queue(chunk);
-                } else if (!prolog && !epilog) {
-                    decodeStream.write(chunk);
-                }
-                if (epilog) {
-                    console.log('ending decodeStream');
-                    isPayload = false;
-                    decodeStream.end();
-                }
-            });
-        })()
+        makeAPCStream(actions)
     );
 };
+
+module.exports.makeHeaderStream = makeHeaderStream;
