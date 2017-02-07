@@ -5,6 +5,7 @@ const replace = require('binary-stream-replace');
 const zlib = require('browserify-zlib-next'); // unmerged PR from ipfs
 const base64 = require('base64-stream');
 const bl = require('bl');
+const throughout = require('throughout');
 
 let beginMagic = Buffer.from('\x1b_HTMSHELL/1.0');
 let endMagic = Buffer.from('\n\x1b\\');
@@ -15,8 +16,13 @@ function makeHeaderStream(cb) {
     let separator1 = Buffer.from('\n\n'); //TODO: use max occurances =1
     let separator2 = Buffer.from('\r\n\r\n');
 
-    let ret = replace(separator1, separator1);
-    ret.pipe(replace(separator2, separator2)).pipe( through(write) );
+    return throughout(
+        throughout(
+            replace(separator1, separator1),
+            replace(separator2, separator2)
+        ), 
+        through(write)
+    );
 
     function write(chunk) {
         console.log('header chunk', chunk);
