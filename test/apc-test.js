@@ -112,3 +112,45 @@ test('Should call callback with payload stream', (t)=> {
         t.equal(result.toString(), 'Hello World', 'Should forward filtered data');
     }));
 });
+
+test('makeDecoderStream', (t)=>{
+    t.plan(4);
+
+    {
+        let s1 = apc.makeDecoderStream({});
+        s1.pipe(concat( (data)=> {
+            t.equals(data.toString(), 'hallo', 'Should be transparent, if no headers are present');
+        }));
+        s1.end('hallo');
+    }
+    {
+        let s1 = apc.makeDecoderStream({
+            'content-transfer-encoding': 'base64'
+        });
+        s1.pipe(concat( (data)=> {
+            t.equals(data.toString(), 'data\n', 'Should decode base64');
+        }));
+        s1.end('ZGF0YQo=');
+    }
+    {
+        let s1 = apc.makeDecoderStream({
+            "content-encoding": "gzip"
+        });
+        s1.pipe(concat( (data)=> {
+            t.equals(data.toString(), 'data\n', 'Should decode gzip');
+        }));
+        s1.end(Buffer.from([0x1f, 0x8b, 0x08, 0x00, 0xfd, 0x53, 0x9b, 0x58, 0x00, 0x03, 0x4b, 0x49, 0x2c, 0x49, 0xe4, 0x02, 0x00, 0x82, 0xc5, 0xc1, 0xe6, 0x05, 0x00, 0x00, 0x00]));
+    }
+    {
+        let s1 = apc.makeDecoderStream({
+            'content-transfer-encoding': 'base64',
+            "content-encoding": "gzip"
+        });
+        s1.pipe(concat( (data)=> {
+            t.equals(data.toString(), 'data\n', 'Should decode base64, then gunzip');
+        }));
+        s1.end('H4sIABBXm1gAA0tJLEnkAgCCxcHmBQAAAA==');
+    }
+
+});
+
