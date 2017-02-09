@@ -4,6 +4,8 @@
 const shoe = require('shoe');
 const hterm = require('hterm-umdjs').hterm; 
 const lib = require('hterm-umdjs').lib; 
+const through = require('through');
+const throughout = require('throughout');
 
 // htmshell modules (npm link'ed at dev time)
 const domfs = require('domfs/lib/client');
@@ -12,6 +14,8 @@ const domfs = require('domfs/lib/client');
 const setPreferences = require('./preferences');
 const solarized = require('./solarized');
 const filterAndProcessAPC = require('./apc');
+const apc = require('./apc');
+const apcHandlers = require('./apc-handlers');
 
 // TODO: Either set to a non-persistent storage or expose
 // via localstoragefs (to be created) and do not set prefs in code.
@@ -39,7 +43,12 @@ t.onTerminalReady = function() {
     };
     t.io.println('*** 65535 BASIC BYTES FREE ***');
 
-    filterAndProcessAPC(stream).on('data', function (data) {
+    stream.pipe(
+        throughout(
+            through( function(data) { this.queue(Buffer.from(data));} ),
+            apc(apcHandlers)
+        )
+    ).on('data', function (data) {
         t.io.print(data.toString());
     });
 

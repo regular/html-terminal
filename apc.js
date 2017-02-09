@@ -92,11 +92,14 @@ function makeAPCStream(actions) {
 
             headerStream = makeHeaderStream( (headerLines) => {
                 let header = parseHeaderLines(headerLines);
+                console.log(header);
                 decoderStream = makeDecoderStream(header);
                 headerStream.pipe(decoderStream);
                 let action = actions[header.args[0]];
                 if (action) {
                     action(decoderStream, header);
+                } else {
+                    console.warn(`APC action not found: ${header.args[0]}`);
                 }
             });
         }
