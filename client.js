@@ -1,19 +1,20 @@
 //jshint esversion: 6, -W083
 
 // npm modules
-const shoe = require('shoe');
-const hterm = require('hterm-umdjs').hterm; 
+const shoe = require('shoe-bin');
+const multiplex = require('multiplex');
+const hterm = require('hterm-umdjs').hterm;
 const lib = require('hterm-umdjs').lib; 
 const through = require('through');
 const throughout = require('throughout');
+const dnode = require('dnode');
 
 // htmshell modules (npm link'ed at dev time)
-const domfs = require('domfs/lib/client');
+//const domfs = require('domfs/lib/client');
 
 // local modules
 const setPreferences = require('./preferences');
 const solarized = require('./solarized');
-const filterAndProcessAPC = require('./apc');
 const apc = require('./apc');
 const apcHandlers = require('./apc-handlers');
 
@@ -22,17 +23,32 @@ const apcHandlers = require('./apc-handlers');
 // We can than mount localstorage to ~/.config/htmshell and set prefs
 // in a json file.
 hterm.defaultStorage = new lib.Storage.Local();
+
+// connect to websocket on the server
 let t = new hterm.Terminal();
 
 t.onTerminalReady = function() {
+    let sockStream = shoe('/pty');
+    let plex = multiplex();
+    sockStream.pipe(plex).pipe(sockStream);
     console.log('terminal ready');
 
-    // connect to websocket on the server
-    let stream = shoe('/pty');
+    let ptyStream = plex.createSharedStream('pty');
     let io = t.io.push();
 
+    let rpc = dnode();
+    let ctlStream = plex.createSharedStream('ctl');
+    ctlStream.pipe(rpc).pipe(ctlStream);
+    rpc.on('remote', function (dnodeRemote) {
+        // TODO: send initial size
+        io.onTerminalResize = function(columns, rows) {
+            console.log('resize', columns, rows);
+            dnodeRemote.resizePTY(columns, rows);
+        };
+    });
+
     io.onVTKeystroke = function(str) {
-        stream.write(str);
+        ptyStream.write(str);
     };
 
     io.sendString = function(str) {
@@ -43,11 +59,8 @@ t.onTerminalReady = function() {
     };
     t.io.println('*** 65535 BASIC BYTES FREE ***');
 
-    stream.pipe(
-        throughout(
-            through( function(data) { this.queue(Buffer.from(data));} ),
-            apc(apcHandlers)
-        )
+    ptyStream.pipe(
+        apc(apcHandlers)
     ).on('data', function (data) {
         t.io.print(data.toString());
     });
@@ -55,7 +68,8 @@ t.onTerminalReady = function() {
     setPreferences(t.prefs_);
     solarized.dark(t);
 };
-
 t.decorate(document.querySelector('#terminal'));
 t.installKeyboard();
-domfs.run();
+//domfs.run();
+
+

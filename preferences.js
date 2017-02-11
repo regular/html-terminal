@@ -3,7 +3,8 @@ module.exports = function(prefs) {
     prefs.set('cursor-color', 'rgba(155, 255, 155, 0.5)');
     prefs.set('font-size', 35);
     //prefs.set('font-family', 'Monaco for Powerline');
-    prefs.set('font-family', 'Inconsolata');
+    //prefs.set('font-family', 'Inconsolata');
+    prefs.set('font-family', 'monospace');
     prefs.set('cursor-blink', true);
 
     prefs.set('enable-bold', true);
