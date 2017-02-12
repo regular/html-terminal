@@ -56,10 +56,6 @@ Environment=XDG_RUNTIME_DIR=/var/run/root/1000
 WantedBy=multi-user.target
 ```
 
-# Known Bugs
-
-Terminal resize does not resize the pty.
-
 # Future Plans
 
 Invent custom [ANSI Escape Sequence][7] to support rendering of HTML snippets inside the terminal window.
