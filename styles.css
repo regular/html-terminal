@@ -3,14 +3,6 @@
     margin: 0;
 }
 
-.brick {
-    position: absolute;
-    right: 20px;
-    top: 20px;
-    width: 200px;
-    height: 200px;
-}
-
 body {
     background-color: green;
     width: 100vw;
