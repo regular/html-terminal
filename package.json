@@ -24,6 +24,7 @@
     "ecstatic": "^2.1.0",
     "hterm-umdjs": "^1.1.4",
     "loner": "^1.0.0",
+    "minimist": "^1.2.0",
     "multiplex": "^6.7.0",
     "node-pty": "^0.6.2",
     "ramda": "^0.23.0",

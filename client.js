@@ -9,9 +9,6 @@ const through = require('through');
 const throughout = require('throughout');
 const dnode = require('dnode');
 
-// htmshell modules (npm link'ed at dev time)
-//const domfs = require('domfs/lib/client');
-
 // local modules
 const setPreferences = require('./preferences');
 const solarized = require('./solarized');
@@ -70,6 +67,7 @@ t.onTerminalReady = function() {
 };
 t.decorate(document.querySelector('#terminal'));
 t.installKeyboard();
+
+// TODO: optionally initialize domfs 
+//const domfs = require('domfs/lib/client');
 //domfs.run();
-
-

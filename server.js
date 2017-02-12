@@ -2,7 +2,6 @@
 const sd = require('systemd-daemon');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
-const R = require('ramda');
 const os = require('os');
 const pty = require('node-pty');
 const shoe = require('shoe-bin');
@@ -14,27 +13,33 @@ const ecstatic = require('ecstatic')(__dirname, {
 });
 const split = require('split');
 
-//const domfs = require('domfs/lib/server');
-//const remoteSpawn = require('remote-spawn');
-
-//const shell = '/usr/bin/login';
-const shell = '/usr/local/bin/zsh';
-const logFilePath = '/var/log/node-terminal-server.log';
- 
-/*
-const console = require('tracer').console({
-    transport: (data) => {
-        fs.appendFile(logFilePath, data.output + '\n', (err) => {
-            if (err) throw err;
-        });
-    }
+const args = require('minimist')(process.argv.slice(1), {
+    default: {
+        domfs: false,
+        domfsmountpoint: './mnt',
+        remotespawn: false,
+        logfile: false,
+        shell: '/usr/bin/login',
+        port: 9999,
+        bind: '127.0.0.1'
+     }
 });
-*/
+//console.dir(args);
+
+if (args.logfile) {
+    console = require('tracer').console({
+        transport: (data) => {
+            fs.appendFile(args.loglile, data.output + '\n', (err) => {
+                if (err) throw err;
+            });
+        }
+    });
+}
 
 let server = http.createServer(ecstatic);
-server.listen(9999/*, "127.0.0.1"*/, ()=>{
+server.listen(args.port, args.bind, ()=>{
     sd.notify('READY=1');
-    console.log('ready, listening on 9999 (localhost only)');
+    console.log(`ready, listening on ${args.bind} port ${args.port}`);
 });
  
 // Create Web socket
@@ -45,7 +50,7 @@ let sock = shoe(function (sockStream) {
 
     let ptyStream = plex.createSharedStream('pty');
     ptyStream.write(Buffer.from('Hello client'));
-    let ptyProcess = pty.spawn(shell, [], {
+    let ptyProcess = pty.spawn(args.shell, [], {
       name: 'xterm-256color',
       cols: 80,
       rows: 25,
@@ -65,17 +70,19 @@ let sock = shoe(function (sockStream) {
 
     sockStream.pipe(plex).pipe(sockStream);
 });
-
 sock.install(server, '/pty');
 
-// Create control socket for receiving  resize notifications
+if (args.remotespawn) {
+    const remoteSpawn = require('remote-spawn');
+    remoteSpawn(server, (err)=> {
+        if (err) {
+            console.error(`Failed to initialze remote-spawn: ${err}`);
+        }
+    });
+}
 
-/*
-remoteSpawn(server, (err)=> {
-    if (err) {
-        console.error(`Failed to initialze remote-spawn: ${err}`);
-    }
-});
-*/
-//domfs(server, process.env.DOMFS_MOUNTPOINT || './mnt');
+if (args.domfs) {
+    const domfs = require('domfs/lib/server');
+    domfs(server, args.domfsmountpoint || process.env.DOMFS_MOUNTPOINT || './mnt');
+}
 
