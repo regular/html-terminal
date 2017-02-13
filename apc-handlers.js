@@ -1,7 +1,30 @@
 //jshint esversion: 6, -W083
 const concat = require('concat-stream');
+const series = require('run-series');
+const BufferList = require('bl');
 
 const defaultParent = 'body';
+
+function TaskQueue() {
+    let tasks = [];
+    let timer;
+
+    function runTasks() {
+        console.log(`Running ${tasks.length} tasks.`);
+        let pending = tasks.splice(0);
+        series(pending, (err, results) => {
+            console.log('Results of running tasks:', err, results);
+        });
+    }
+    
+    return function addTask(task) {
+        tasks.push(task);
+        if (typeof timer !== 'undefined') clearTimeout(timer);
+        timer = setTimeout(runTasks, 0);
+   };
+}
+
+let addTask = TaskQueue();
 
 // See http://stackoverflow.com/questions/1197575/can-scripts-be-inserted-with-innerhtml
 function cloneScriptElement(node) {
@@ -30,29 +53,81 @@ function convertScriptTags(node) {
 
 function appendChild(stream, header) {
     let selector = header.args[1] || defaultParent;
-    let el = document.querySelector(selector);
-    if (!el) throw new Error(`Selector does not match any element: ${selector}`);
+    console.log(`About to appendChild to ${selector}`);
 
-    stream.pipe(concat( (data) => {
-        var frag = document.createDocumentFragment();
-        var div = document.createElement('div');
-        div.innerHTML = data.toString(); 
-        convertScriptTags(div);
-        while (div.firstChild) frag.appendChild(div.firstChild);
-        el.appendChild(frag);
-    }));
+    stream.on('end', ()=>console.log('appendChild stream ends') );
+
+    let data = BufferList();
+    stream.pipe(data);
+    let ended = false;
+    stream.on('end', ()=> ended = true );
+
+    addTask( (cb) => {
+        console.log('appendChild taks');
+        if (ended) return doit(cb);
+        stream.on('end', ()=> doit(cb) );
+        
+        function doit(cb) {
+            console.log('appendChild doit');
+            let el = document.querySelector(selector);
+            if (!el) return cb(new Error(`Selector does not match any element: ${selector}`));
+            console.log(`appendChild to ${selector}`, el);
+
+            var frag = document.createDocumentFragment();
+            var div = document.createElement('div');
+            div.innerHTML = data.toString(); 
+            convertScriptTags(div);
+            while (div.firstChild) frag.appendChild(div.firstChild);
+            el.appendChild(frag);
+            console.log('appended');
+            cb(null);
+        }
+    });
 }
 
 function removeChild(stream, header) {
     let selector = header.args[1] || defaultParent;
-    let el = document.querySelector(selector);
-    if (!el) throw new Error(`Selector does not match any element: ${selector}`);
-    let parent = el.parentElement;
-    if (!parent) throw new Error(`${selector} has no parent element.`);
-    parent.removeChild(el);
+    console.log(`About to remove ${selector}`);
+    addTask( (cb) => {
+        let el = document.querySelector(selector);
+        if (!el) return cb(new Error(`Selector does not match any element: ${selector}`));
+        console.log(`remove ${selector}`, el);
+        let parent = el.parentElement;
+        if (!parent) throw new Error(`${selector} has no parent element.`);
+        parent.removeChild(el);
+        cb(null);
+    });
+}
+
+function setAttribute(stream, header) {
+    let [_, selector, name] = header.args;
+    console.log('about to setAttribute', selector, name);
+
+    stream.on('end', ()=>console.log('attr stream ends') );
+
+    let data = BufferList();
+    stream.pipe(data);
+    let ended = false;
+    stream.on('end', ()=> ended = true );
+
+    addTask( (cb) => {
+        console.log('setAttribute taks');
+        if (ended) return doit(cb);
+        stream.on('end', ()=> doit(cb) );
+        
+        function doit(cb) {
+            console.log('setAtttr doit');
+            let el = document.querySelector(selector);
+            //if (!el) throw new Error(`Selector does not match any element: ${selector}`);
+            console.log(`set ${name} of ${selector}`, el, 'to', data);
+            el.setAttribute(name, data.toString() );
+            //cb(null);
+        }
+    });
 }
 
 module.exports = {
     appendChild,
-    removeChild
+    removeChild,
+    setAttribute
 };

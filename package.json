@@ -29,6 +29,7 @@
     "node-pty": "^0.6.2",
     "ramda": "^0.23.0",
     "remote-spawn": "regular/remote-spawn",
+    "run-series": "^1.1.4",
     "shoe-bin": "^1.0.0",
     "split": "^1.0.0",
     "systemd-daemon": "^1.1.0",
