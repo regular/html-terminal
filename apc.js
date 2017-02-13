@@ -8,7 +8,7 @@ const bl = require('bl');
 const throughout = require('throughout');
 
 let beginMagic = Buffer.from('\x1b_HTMSHELL/1.0');
-let endMagic = Buffer.from('\n\x1b\\');
+let endMagic = Buffer.from('\x1b\\');
 
 function parseHeaderLines(headers) {
     let [args, ...kvs] = headers;
@@ -27,11 +27,6 @@ function makeHeaderStream(cb) {
     let separator1 = Buffer.from('\n\n');
     let separator2 = Buffer.from('\r\n\r\n');
 
-    return throughout(
-        loner.only(1)(separator1, separator2),
-        through(write)
-    );
-
     function write(chunk) {
         if (inHeaders) {
             if (bufferEquals(chunk, separator1) || bufferEquals(chunk, separator2)) {
@@ -45,7 +40,15 @@ function makeHeaderStream(cb) {
             this.queue(chunk);
         }
     }
-    return ret;
+
+    function end() {
+        this.queue(null);
+    }
+    
+    return throughout(
+        loner.only(1)(separator1, separator2),
+        through(write, end)
+    );
 }
 
 function makeDecoderStream(header) {
@@ -93,6 +96,7 @@ function makeAPCStream(actions) {
             headerStream = makeHeaderStream( (headerLines) => {
                 let header = parseHeaderLines(headerLines);
                 console.log(header);
+                console.log('start decoderStream');
                 decoderStream = makeDecoderStream(header);
                 headerStream.pipe(decoderStream);
                 let action = actions[header.args[0]];

@@ -5,7 +5,7 @@ const bl = require('bl');
 const concat = require('concat-stream');
 
 const beginMagic = Buffer.from('\x1b_HTMSHELL/1.0');
-const endMagic = Buffer.from('\n\x1b\\');
+const endMagic = Buffer.from('\x1b\\');
 
 test('parseHeaderLines', (t)=> {
     t.deepEqual(apc.parseHeaderLines([
@@ -68,51 +68,6 @@ test('makeHeaderStream (alternative line ending)', (t)=>{
     hs.end();
 });
 
-
-test('Sequence should not show up downstream', (t)=> {
-    let stream = new bl();
-    stream.append('Hello');
-    stream.append(beginMagic);
-    stream.append('ACTION\n');
-    stream.append('\n');
-    stream.append(endMagic);
-    stream.append(' World');
-
-    stream.pipe(apc()).pipe(concat((result)=>{
-        t.equal(result.toString(), 'Hello World');
-        t.end();
-    }));
-});
-
-
-test('Should call callback with payload stream', (t)=> {
-    let stream = new bl();
-    stream.append('Hello');
-    stream.append(beginMagic);
-    stream.append('ACTION\n');
-    stream.append('foo: bar\n');
-    stream.append('\n');
-    stream.append('data');
-    stream.append(endMagic);
-    stream.append(' World');
-
-    t.plan(3);
-
-    stream.pipe(apc({
-        ACTION: (payloadStream, headers) => {
-            t.deepEqual(headers, {
-                args: ['ACTION'],
-                foo: 'bar'
-            }, 'Should have correctly parsed header');
-            payloadStream.pipe(concat( (payload) => {
-                t.equal(payload.toString(), 'data', 'Should be correct payload');
-            }));
-        }
-    })).pipe(concat((result)=>{
-        t.equal(result.toString(), 'Hello World', 'Should forward filtered data');
-    }));
-});
-
 test('makeDecoderStream', (t)=>{
     t.plan(4);
 
@@ -151,6 +106,65 @@ test('makeDecoderStream', (t)=>{
         }));
         s1.end('H4sIABBXm1gAA0tJLEnkAgCCxcHmBQAAAA==');
     }
-
 });
+
+test('Sequence should not show up downstream', (t)=> {
+    let stream = new bl();
+    stream.append('Hello');
+    stream.append(beginMagic);
+    stream.append('ACTION\n');
+    stream.append('\n');
+    stream.append(endMagic);
+    stream.append(' World');
+
+    stream.pipe(apc()).pipe(concat((result)=>{
+        t.equal(result.toString(), 'Hello World');
+        t.end();
+    }));
+});
+
+
+test('Should call callback with payload stream', (t)=> {
+    let stream = new bl();
+    stream.append('Hello');
+    stream.append(beginMagic);
+    stream.append('ACTION1\n');
+    stream.append('foo: bar\n');
+    stream.append('\n');
+    stream.append('data1');
+    stream.append(endMagic);
+    stream.append(beginMagic);
+    stream.append('ACTION2 arg1 arg2\n');
+    stream.append('baz: boo\n');
+    stream.append('\n');
+    stream.append('data2');
+    stream.append(endMagic);
+    stream.append(' World');
+
+    t.plan(5);
+
+    stream.pipe(apc({
+        ACTION1: (payloadStream, headers) => {
+            t.deepEqual(headers, {
+                args: ['ACTION1'],
+                foo: 'bar'
+            }, 'Should have correctly parsed header');
+            payloadStream.pipe(concat( (payload) => {
+                t.equal(payload.toString(), 'data1', 'Should be correct payload');
+            }));
+        },
+        ACTION2: (payloadStream, headers) => {
+            t.deepEqual(headers, {
+                args: ['ACTION2', 'arg1', 'arg2'],
+                baz: 'boo'
+            }, 'Should have correctly parsed header');
+            payloadStream.pipe(concat( (payload) => {
+                t.equal(payload.toString(), 'data2', 'Should be correct payload');
+            }));
+        }
+    })).pipe(concat((result)=>{
+        t.equal(result.toString(), 'Hello World', 'Should forward filtered data');
+    }));
+});
+
 
