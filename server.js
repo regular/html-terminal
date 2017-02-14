@@ -12,6 +12,7 @@ const ecstatic = require('ecstatic')(__dirname, {
     cache: "no-cache"
 });
 const split = require('split');
+const proxy = require('htmshell-proxy/server');
 
 const args = require('minimist')(process.argv.slice(1), {
     default: {
@@ -39,10 +40,10 @@ if (args.logfile) {
 let server = http.createServer(ecstatic);
 server.listen(args.port, args.bind, ()=>{
     sd.notify('READY=1');
-    console.log(`ready, listening on ${args.bind} port ${args.port}`);
+    console.log(`HTTP server listening on ${args.bind} port ${args.port}`);
 });
  
-// Create Web socket
+// Create pty Web socket
 let sock = shoe(function (sockStream) {
     console.log("New websocket connection");
 
@@ -71,6 +72,8 @@ let sock = shoe(function (sockStream) {
     sockStream.pipe(plex).pipe(sockStream);
 });
 sock.install(server, '/pty');
+
+proxy(server, {tcpAddress: args.bind});
 
 if (args.remotespawn) {
     const remoteSpawn = require('remote-spawn');
