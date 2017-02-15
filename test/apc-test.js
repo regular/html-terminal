@@ -4,8 +4,7 @@ const test = require('tape');
 const bl = require('bl');
 const concat = require('concat-stream');
 
-const beginMagic = Buffer.from('\x1b_HTMSHELL/1.0');
-const endMagic = Buffer.from('\x1b\\');
+const {beginMagic, endMagic} = require('../apc-sequence');
 
 test('parseHeaderLines', (t)=> {
     t.deepEqual(apc.parseHeaderLines([

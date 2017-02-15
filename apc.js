@@ -7,8 +7,7 @@ const base64 = require('base64-stream');
 const bl = require('bl');
 const throughout = require('throughout');
 
-let beginMagic = Buffer.from('\x1b_HTMSHELL/1.0');
-let endMagic = Buffer.from('\x1b\\');
+const {beginMagic, endMagic} = require('./apc-sequence');
 
 function parseHeaderLines(headers) {
     let [args, ...kvs] = headers;
