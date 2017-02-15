@@ -10,10 +10,10 @@ function startAPC(command, headers) {
     bl.append(Buffer.from(command));
     bl.append(Buffer.from('\n'));
     for (let key in headers) {
-        bl.append(Buffer.from(`${key}:${value}\n`));
+        bl.append(Buffer.from(`${key.toLowerCase()}:${headers[key].toLowerCase()}\n`));
     }
     bl.append('\n');
-    return bl.toBuffer();
+    return bl.slice();
 }
 function endAPC() {
     return endMagic;

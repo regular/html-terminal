@@ -18,7 +18,14 @@ function TaskQueue() {
     }
     
     return function addTask(task) {
-        tasks.push(task);
+        tasks.push((cb)=>{
+            task( (err)=>{ 
+                // wrapping into allways-succeeding
+                // async function
+                console.error(err);
+                cb(null);
+            });
+        });
         if (typeof timer !== 'undefined') clearTimeout(timer);
         timer = setTimeout(runTasks, 0);
    };
@@ -86,14 +93,18 @@ function appendChild(stream, header) {
 }
 
 function removeChild(stream, header) {
-    let selector = header.args[1] || defaultParent;
-    console.log(`About to remove ${selector}`);
+    let [_, parentSelector, childSelector] = header.args;
+    if (!childSelector) {
+        childSelector = parentSelector;
+        parentSelector = defaultParent;
+    }
+    console.log(`About to remove ${childSelector} from ${parentSelector}`);
     addTask( (cb) => {
-        let el = document.querySelector(selector);
-        if (!el) return cb(new Error(`Selector does not match any element: ${selector}`));
-        console.log(`remove ${selector}`, el);
-        let parent = el.parentElement;
-        if (!parent) throw new Error(`${selector} has no parent element.`);
+        let parent = document.querySelector(parentSelector);
+        if (!parent) return cb(new Error(`Parent selector does not match any element: ${parentSelector}`));
+        console.log(`remove ${childSelector} fomr`, parent);
+        let el = parent.querySelector(childSelector);
+        if (!el) return cb(new Error(`Child selector does not match any element: ${childSelector}`));
         parent.removeChild(el);
         cb(null);
     });
