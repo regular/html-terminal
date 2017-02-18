@@ -70,7 +70,7 @@ function appendChild(stream, header) {
     stream.on('end', ()=> ended = true );
 
     addTask( (cb) => {
-        console.log('appendChild taks');
+        console.log('appendChild task');
         if (ended) return doit(cb);
         stream.on('end', ()=> doit(cb) );
         
@@ -122,7 +122,7 @@ function setAttribute(stream, header) {
     stream.on('end', ()=> ended = true );
 
     addTask( (cb) => {
-        console.log('setAttribute taks');
+        console.log('setAttribute task');
         if (ended) return doit(cb);
         stream.on('end', ()=> doit(cb) );
         
