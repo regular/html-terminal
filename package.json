@@ -22,6 +22,7 @@
     "browserify-zlib-next": "ipfs/browserify-zlib-next",
     "buffer-equal": "^1.0.0",
     "chalk": "^1.1.3",
+    "dnode": "^1.2.2",
     "ecstatic": "^2.1.0",
     "hterm-umdjs": "^1.1.4",
     "loner": "^1.0.0",
