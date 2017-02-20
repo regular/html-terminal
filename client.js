@@ -8,6 +8,8 @@ const lib = require('hterm-umdjs').lib;
 const through = require('through');
 const throughout = require('throughout');
 const dnode = require('dnode');
+const chalk = require('chalk');
+let chalkCtx = new chalk.constructor({enabled: true});
 
 // local modules
 const setPreferences = require('./preferences');
@@ -54,7 +56,25 @@ t.onTerminalReady = function() {
         // terminal itself.
         // Most likely you'll do the same this as onVTKeystroke.
     };
-    t.io.println('*** 65535 BASIC BYTES FREE ***');
+    t.io.println(chalkCtx.red('*** 65535 BASIC BYTES FREE ***'));
+
+    window.terminal = (function() {
+        function toString(args) {
+            return [].slice.call(args).map( String ).join(' ');
+        }
+        function log() {
+            t.io.println(toString(arguments));
+        }
+        function warn() {
+            t.io.println(chalkCtx.yellow(toString(arguments)));
+        }
+        function error() {
+            t.io.println(chalkCtx.red(toString(arguments)));
+        }
+        return {log, warn, error};
+    })();
+
+    console.log(chalkCtx.red('*** 65535 BASIC BYTES FREE ***'));
 
     ptyStream.pipe(
         apc(apcHandlers)
